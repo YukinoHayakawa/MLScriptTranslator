@@ -8,6 +8,9 @@
 Tokenizer::Tokenizer(std::istream &in)
 {
     const auto u8src = usagi::readStreamAsString(in);
+    mU8Source.reserve(u8src.size());
+    // utf32 is easier to handle, although the two conversions would introduce
+    // some extra work
     utf8::utf8to32(
         u8src.begin(), u8src.end(),
         back_inserter(mSource)
@@ -23,8 +26,16 @@ void Tokenizer::beginToken()
 
 void Tokenizer::endToken(TokenType token, std::size_t length)
 {
+    const auto cur = mU8Source.size();
+    utf8::utf32to8(
+        mSource.data() + mTempPos, mSource.data() + mTempPos + length,
+        std::back_inserter(mU8Source)
+    );
     mTempToken.type = token;
-    mTempToken.text = { mSource.data() + mTempPos, length };
+    mTempToken.text = {
+        mU8Source.data() + cur,
+        mU8Source.size() - cur
+    };
     mTokens.push_back(mTempToken);
 }
 
@@ -122,19 +133,13 @@ void Tokenizer::error()
 
 void Tokenizer::dumpTokens()
 {
-    std::string t;
     for(auto &&token : mTokens)
     {
-        t.clear();
-        utf8::utf32to8(
-            token.text.begin(), token.text.end(),
-            std::back_inserter(t)
-        );
         LOG(info, "Line {}, Col {}: [{}] {}",
-                token.line, token.column,
-                tokenName(token.type),
-                t
-            );
+            token.line, token.column,
+            tokenName(token.type),
+            token.text
+        );
     }
 }
 

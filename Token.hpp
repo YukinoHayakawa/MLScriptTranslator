@@ -24,5 +24,5 @@ struct Token
 {
     int line = 0, column = 0;
     TokenType type = TokenType::UNKNOWN;
-    std::u32string_view text;
+    std::string_view text;
 };

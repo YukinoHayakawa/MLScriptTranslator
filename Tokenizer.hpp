@@ -10,6 +10,7 @@
 class Tokenizer : usagi::Noncopyable
 {
     std::u32string mSource;
+    std::string mU8Source;
     std::vector<Token> mTokens;
     int mCurrentLine = 1;
     int mCurrentColumn = 1;
