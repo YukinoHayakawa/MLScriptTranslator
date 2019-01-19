@@ -81,16 +81,23 @@ public:
         return mSource[mCurrentPos + 1];
     }
 
-    bool isTokenChar(char32_t c)
+    static bool isTokenChar(char32_t c)
     {
         return c == '['
             || c == ']'
-            || c == '{'
-            || c == '}'
+            || isCommandTokenChar(c)
             // these are only effective within [] and {} pairs
             || c == ','
             || c == '='
-            || c == ':';
+            || c == ':'
+        ;
+    }
+
+    static bool isCommandTokenChar(char32_t c)
+    {
+        return c == '{'
+            || c == '}'
+        ;
     }
 
     void skipWhiteSpace()
@@ -113,13 +120,23 @@ public:
                 read_next = false;
                 break;
             }
-            if(!mPlainText && isTokenChar(peek())) break;
+            // next is a token char, the last char is the end of string literal
+            if(mPlainText)
+            {
+                if(!mComment && isCommandTokenChar(peek())) break;
+            }
+            else
+            {
+                if(isTokenChar(peek())) break;
+            }
+            // move onto next char
             advance();
             if(mComment && cur() == '}' && peek() == '}')
             {
                 read_next = false;
                 break;
             }
+
             if(isspace(cur()))
                 ++trim_end;
             else
@@ -128,10 +145,7 @@ public:
         const auto len = mCurrentPos - mTempPos - trim_end + read_next;
         if(len > 0)
         {
-            endToken(
-                TokenType::STRING_LITERAL,
-                mCurrentPos - mTempPos - trim_end + read_next
-            );
+            endToken(TokenType::STRING_LITERAL, len);
         }
         if(read_next) advance();
     }
@@ -187,13 +201,15 @@ public:
                     advance();
                     endToken(TokenType::LEFT_DOUBLE_BRACE, 2);
                     mComment = true;
+                    advance();
+                    readStringLiteral();
                 }
                 else
                 {
                     endToken(TokenType::LEFT_BRACE, 1);
                     mPlainText = false;
+                    advance();
                 }
-                advance();
                 continue;
             }
             if(cur() == '}')
