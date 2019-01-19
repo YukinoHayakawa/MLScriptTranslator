@@ -87,7 +87,17 @@ bool Tokenizer::isCommandTokenChar(char32_t c)
         || c == '}';
 }
 
-void Tokenizer::skipWhiteSpace() { while(isspace(cur())) advance(); }
+bool Tokenizer::isSpaceChar(char32_t c)
+{
+    return c == ' '
+        || c == '\t'
+        || c == '\n'
+        || c == '\v'
+        || c == '\f'
+        || c == '\r';
+}
+
+void Tokenizer::skipWhiteSpace() { while(isSpaceChar(cur())) advance(); }
 
 void Tokenizer::readStringLiteral()
 {
@@ -115,7 +125,7 @@ void Tokenizer::readStringLiteral()
             break;
         }
 
-        if(isspace(cur()))
+        if(isSpaceChar(cur()))
             ++trim_end;
         else
             trim_end = 0;

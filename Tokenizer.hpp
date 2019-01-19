@@ -27,6 +27,7 @@ class Tokenizer : usagi::Noncopyable
     char32_t peek() const;
     static bool isTokenChar(char32_t c);
     static bool isCommandTokenChar(char32_t c);
+    static bool isSpaceChar(char32_t c);
     void skipWhiteSpace();
     void readStringLiteral();
     void error();
