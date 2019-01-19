@@ -166,77 +166,74 @@ public:
         {
             skipWhiteSpace();
             beginToken();
-            switch(cur())
+            if(cur() == '[')
             {
-                case '[':
+                endToken(TokenType::LEFT_BRACKET, 1);
+                mPlainText = false;
+                advance();
+                continue;
+            }
+            if(cur() == ']')
+            {
+                endToken(TokenType::RIGHT_BRACKET, 1);
+                mPlainText = true;
+                advance();
+                continue;
+            }
+            if(cur() == '{')
+            {
+                if(peek() == '{')
                 {
-                    endToken(TokenType::LEFT_BRACKET, 1);
+                    advance();
+                    endToken(TokenType::LEFT_DOUBLE_BRACE, 2);
+                    mComment = true;
+                }
+                else
+                {
+                    endToken(TokenType::LEFT_BRACE, 1);
                     mPlainText = false;
-                    advance();
-                    break;
                 }
-                case ']':
+                advance();
+                continue;
+            }
+            if(cur() == '}')
+            {
+                if(peek() == '}')
                 {
-                    endToken(TokenType::RIGHT_BRACKET, 1);
+                    advance();
+                    endToken(TokenType::RIGHT_DOUBLE_BRACE, 2);
+                    mComment = false;
+                }
+                else
+                {
+                    endToken(TokenType::RIGHT_BRACE, 1);
                     mPlainText = true;
-                    advance();
-                    break;
                 }
-                case '{':
-                {
-                    if(peek() == '{')
-                    {
-                        advance();
-                        endToken(TokenType::LEFT_DOUBLE_BRACE, 2);
-                        mComment = true;
-                    }
-                    else
-                    {
-                        endToken(TokenType::LEFT_BRACE, 1);
-                        mPlainText = false;
-                    }
-                    advance();
-                    break;
-                }
-                case '}':
-                {
-                    if(peek() == '}')
-                    {
-                        advance();
-                        endToken(TokenType::RIGHT_DOUBLE_BRACE, 2);
-                        mComment = false;
-                    }
-                    else
-                    {
-                        endToken(TokenType::RIGHT_BRACE, 1);
-                        mPlainText = true;
-                    }
-                    advance();
-                    break;
-                }
-                case ':':
+                advance();
+                continue;
+            }
+            if(!mPlainText)
+            {
+                if(cur() == ':')
                 {
                     endToken(TokenType::COLON, 1);
                     advance();
-                    break;
+                    continue;
                 }
-                case '=':
+                if(cur() == '=')
                 {
                     endToken(TokenType::EQUAL, 1);
                     advance();
-                    break;
+                    continue;
                 }
-                case ',':
+                if(cur() == ',')
                 {
                     endToken(TokenType::COMMA, 1);
                     advance();
-                    break;
-                }
-                default:
-                {
-                    readStringLiteral();
+                    continue;
                 }
             }
+            readStringLiteral();
         }
     }
 };
